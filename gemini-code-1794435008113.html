@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Duper Goofy Limerick Generator 🍌</title>
+    <style>
+        /* CSS styling for bouncy, goofy aesthetics */
+        body {
+            font-family: 'Comic Sans MS', 'Bubblegum Sans', 'Chalkboard SE', cursive, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 50%, #fbc2eb 100%);
+            color: #2b2b2b;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: #ffffff;
+            border: 6px dashed #ff4757;
+            border-radius: 30px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            text-align: center;
+            animation: bounceIn 0.8s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        h1 {
+            color: #ff3838;
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            text-shadow: 3px 3px 0px #fffa65;
+        }
+
+        .subtitle {
+            color: #00d2d3;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        select, button {
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: bold;
+            padding: 12px 20px;
+            border-radius: 50px;
+            border: 3px solid #333;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #333;
+            transition: all 0.1s ease;
+        }
+
+        select {
+            background: #fffa65;
+            color: #333;
+        }
+
+        button.gen-btn {
+            background: #2ed573;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        button.voice-btn {
+            background: #ffa502;
+            color: white;
+        }
+
+        select:active, button:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #333;
+        }
+
+        .limerick-card {
+            background: #f1f2f6;
+            border: 4px solid #70a1ff;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+            position: relative;
+        }
+
+        .limerick-line {
+            font-size: 1.2rem;
+            margin: 8px 0;
+            padding: 5px 10px;
+            background: white;
+            border-radius: 10px;
+            border: 2px dotted #ced6e0;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            background: #5352ed;
+            color: white;
+            font-size: 0.9rem;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid #333;
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+
+        .minion-badge {
+            display: inline-block;
+            background: #fffa65;
+            color: #d63031;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            border: 2px solid #333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🍌 Goofy Limerick Generator 🤪</h1>
+    <div class="subtitle">Powered by Minionese & Web Audio!</div>
+
+    <div class="controls">
+        <select id="themeSelect">
+            <option value="minion">🍌 Minionese (Banana Language)</option>
+            <option value="food">🍕 Food & Feast</option>
+            <option value="whimsical">🦄 Whimsical & Weird</option>
+            <option value="nautical">⛵ Nautical Nonsense</option>
+        </select>
+
+        <button class="gen-btn" onclick="generateLimerick()">🎲 Make Limerick!</button>
+        <button class="voice-btn" id="voiceToggle" onclick="toggleVoice()">🗣️ Speak: ON</button>
+    </div>
+
+    <div class="limerick-card">
+        <div id="line1" class="limerick-line">Click 'Make Limerick!' below</div>
+        <div id="line2" class="limerick-line">to start the wacky fun!</div>
+        <div id="line3" class="limerick-line">Wobble wobble beep boop</div>
+        <div id="line4" class="limerick-line">Banana time for everyone</div>
+        <div id="line5" class="limerick-line">Poopaye!</div>
+        <div style="text-align: center; margin-top: 15px;">
+            <span class="minion-badge" id="badgeText">Bello bello! 🍌</span>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="action-btn" onclick="copyLimerick()">📋 Copy Limerick</button>
+        <button class="action-btn" onclick="speakCurrentLimerick()">🔊 Say in Minion Accent!</button>
+    </div>
+</div>
+
+<script>
+    /* =========================================================================
+       HIGH-LEVEL SUMMARY FOR NON-CODERS:
+       This JavaScript code generates funny, perfectly rhyming limericks (AABBA style)
+       based on the theme you choose. It uses safe arrays and 0-indexed lookups to 
+       avoid any errors. When you click buttons, it uses the browser's built-in Web Audio
+       API to create goofy pop/chord sound effects without needing external files.
+       Finally, it uses the browser's Speech Synthesis tool with high pitch and fast
+       speed to read your limerick aloud in a squeaky Minion voice!
+       ========================================================================= */
+
+    // Global variable to keep track of whether voice reading is turned on
+    let voiceEnabled = true;
+
+    // Database of goofy rhyming templates for different themes
+    const themes = {
+        minion: {
+            badge: "BANANA! TULALILOO! 🍌",
+            lines: [
+                ["There once was a minion named Stuart,", "A goofy yellow little stewart,", "Banana in hand,", "Across all the land,", "He slipped in some yummy dessert!"],
+                ["King Bob held a teddy bear proudly,", "And giggled and squeaked very loudly,", "With gelati and smiles,", "He traveled for miles,", "And cheered for his friends so quite rowdily!"],
+                ["Bello bello shouted Kevin so bright,", "With goggles adjusted just right,", "He ran for a snack,", "With a papoy pack,", "And danced in the glorious light!"]
+            ]
+        },
+        food: {
+            badge: "MOMMY MIA YUMMY! 🍕",
+            lines: [
+                ["A goofy young chef made some cheese,", "And begged all the pickles to please,", "He baked a huge pie,", "That reached to the sky,", "And sneezed out a giant cold sneeze!"],
+                ["Some spaghetti danced on a spoon,", "Beneath a bright goofy blue moon,", "With meatballs that rolled,", "And mustard of gold,", "They sang a hilarious tune!"]
+            ]
+        },
+        whimsical: {
+            badge: "QUIRKY & WACKY! 🦄",
+            lines: [
+                ["A purple-hued frog on a bike,", "Pedaled right down the expressway pike,", "With boots made of cheese,", "And wings in the breeze,", "He shouted out 'Hey what a hike!'"],
+                ["The wizard wore socks on his ears,", "And counted his jellybean tears,", "He waved his tin wand,", "And jumped in the pond,", "And laughed at his goofy old peers!"]
+            ]
+        },
+        nautical: {
+            badge: "AHAVOY CAPTAIN! ⛵",
+            lines: [
+                ["An octopus sailed on a shoe,", "With captains of emerald hue,", "He splashed with eight arms,", "Avoiding false alarms,", "And ate all the seaweed he chew!"]
+            ]
+        }
+    };
+
+    // Web Audio API Synthesizer to make goofy popup sound effects
+    function playGoofySound(type) {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            let now = ctx.currentTime;
+
+            if (type === 'pop') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.15);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } else if (type === 'chord') {
+                // Play a happy bouncy chord sequence
+                [400, 600, 800].forEach((freq, i) => {
+                    let o = ctx.createOscillator();
+                    let g = ctx.createGain();
+                    o.type = 'triangle';
+                    o.frequency.value = freq;
+                    o.connect(g);
+                    g.connect(ctx.destination);
+                    g.gain.setValueAtTime(0.15, now + (i * 0.08));
+                    g.gain.exponentialRampToValueAtTime(0.01, now + (i * 0.08) + 0.2);
+                    o.start(now + (i * 0.08));
+                    o.stop(now + (i * 0.08) + 0.2);
+                });
+            }
+        } catch (e) {
+            console.log("Audio not supported or blocked until user interaction.");
+        }
+    }
+
+    // Function to toggle voice reading on/off
+    function toggleVoice() {
+        voiceEnabled = !voiceEnabled;
+        const btn = document.getElementById('voiceToggle');
+        btn.textContent = voiceEnabled ? "🗣️ Speak: ON" : "🔇 Speak: OFF";
+        playGoofySound('pop');
+    }
+
+    // Function to generate the random limerick safely without undefined errors
+    function generateLimerick() {
+        playGoofySound('chord');
+        
+        // 1. Get the chosen theme value from the dropdown menu
+        const selectedTheme = document.getElementById('themeSelect').value;
+        
+        // 2. Fetch the appropriate theme data (with safe fallback to 'minion')
+        const themeData = themes[selectedTheme] || themes.minion;
+        
+        // 3. Pick a random poem set from the theme's array
+        const randomIndex = Math.floor(Math.random() * themeData.lines.length);
+        const chosenLines = themeData.lines[randomIndex];
+
+        // 4. Safely update each of the 5 HTML lines using 0-based array indexing (0, 1, 2, 3, 4)
+        document.getElementById('line1').textContent = chosenLines[0];
+        document.getElementById('line2').textContent = chosenLines[1];
+        document.getElementById('line3').textContent = chosenLines[2];
+        document.getElementById('line4').textContent = chosenLines[3];
+        document.getElementById('line5').textContent = chosenLines[4];
+        
+        // 5. Update the goofy fun badge
+        document.getElementById('badgeText').textContent = themeData.badge;
+
+        // 6. If voice is enabled, automatically speak it in Minion accent!
+        if (voiceEnabled) {
+            speakCurrentLimerick();
+        }
+    }
+
+    // Function to read the current limerick out loud using browser speech synthesis
+    function speakCurrentLimerick() {
+        if (!('speechSynthesis' in window)) return;
+        
+        // Stop any ongoing speech
+        window.speechSynthesis.cancel();
+
+        // Combine all 5 lines into a single sentence
+        const textToSpeak = [
+            document.getElementById('line1').textContent,
+            document.getElementById('line2').textContent,
+            document.getElementById('line3').textContent,
+            document.getElementById('line4').textContent,
+            document.getElementById('line5').textContent
+        ].join(". ");
+
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        
+        // Configure Minion-like voice parameters: high pitch & fast speed
+        utterance.pitch = 1.7; // Squeaky high pitch
+        utterance.rate = 1.3;  // Energetic fast speed
+        utterance.volume = 1.0;
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // Function to copy the limerick text to clipboard
+    function copyLimerick() {
+        playGoofySound('pop');
+        const fullText = [
+            document.getElementById('line1').textContent,
+            document.getElementById('line2').textContent,
+            document.getElementById('line3').textContent,
+            document.getElementById('line4').textContent,
+            document.getElementById('line5').textContent
+        ].join("\n");
+
+        navigator.clipboard.writeText(fullText).then(() => {
+            alert("📋 Limerick copied to clipboard! Banana!");
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    }
+</script>
+
+</body>
+</html>
